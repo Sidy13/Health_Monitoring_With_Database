@@ -1,9 +1,11 @@
+from datetime import datetime
+
 import mysql.connector
 from mysql.connector import Error
 import re
 
 def connect_to_db():
-    """Establish a connection to the MySQL database."""
+    #Establish a connection to the MySQL database
     try:
         mydb = mysql.connector.connect(
             host="localhost",
@@ -18,11 +20,23 @@ def connect_to_db():
         return None
 
 
-print("Connexion réussie !")
 
 def validate_date(date):
-    """Validate date format (YYYY-MM-DD)."""
-    return bool(re.match(r"^\d{4}-\d{2}-\d{2}$", date))
+    #Validate date format (DD-MM-YYYY)
+    try:
+        date = date.replace("/", "-")
+        datetime.strptime(date, "%d-%m-%Y")
+        return True
+    except ValueError:
+        return False
+
+def convert_date(date):
+    #Convert date from DD-MM-YYYY or DD/MM/YYYY to YYYY-MM-DD
+    try:
+        date = date.replace("/", "-")
+        return datetime.strptime(date, "%d-%m-%Y").strftime("%Y-%m-%d")
+    except ValueError:
+        return None
 
 
 def create_meal():
@@ -31,7 +45,7 @@ def create_meal():
         print("Database connection failed. Operation aborted.")
         return
     cursor = mydb.cursor()
-    name = input("Enter the name of the meal").strip()
+    name = input("Enter the name of the meal: ").strip()
     while True:
         try:
             calories = float(input("Enter the number of calories of the meal: "))
@@ -41,10 +55,13 @@ def create_meal():
         except ValueError:
             print("Invalid input for the calories, please try again")
     while True:
-        date = input("Enter the date of the meal: ").strip()
-        if validate_date(date):
-            break
-        print("Invalid date format, enter it within the format YYYY-MM-DD")
+        date_input = input("Enter the date of the meal (DD-MM-YYYY or DD/MM/YYYY): ").strip()
+        if validate_date(date_input):
+            date = convert_date(date_input)
+            if date:
+                break
+        print("Invalid date format. Please enter it in the format DD-MM-YYYY or DD/MM/YYYY.")
+
     print("\nInformations summary")
     print("Name: ", name)
     print("Calories: ", calories)
