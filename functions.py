@@ -1,8 +1,10 @@
-from datetime import datetime
+
 
 import mysql.connector
 from mysql.connector import Error
 import re
+from datetime import datetime
+import bcrypt
 
 def connect_to_db():
     #Establish a connection to the MySQL database
@@ -50,6 +52,8 @@ def create_user():
     lastName = input("Enter your last name: ")
     email = input("Enter your email: ")
     password = input("Enter your password: ")
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
     print("\nYour informations summary")
     print("username: ", username)
     print("first name: ", firstName)
@@ -58,13 +62,14 @@ def create_user():
     confirm = input("Do you want to continue? [y/n] ").strip().lower()
     if confirm == "y":
         query = "Insert into user (username, firstName, lastName, password, email) values (%s, %s, %s, %s, %s)"
-        cursor.execute(query, (username, firstName, lastName, password, email))
+        cursor.execute(query, (username, firstName, lastName, hashed_password, email))
         mydb.commit()
         mydb.close()
         print("User created successfully")
     else:
         mydb.close()
         print("User aborted")
+
 
 
 def create_meal():
