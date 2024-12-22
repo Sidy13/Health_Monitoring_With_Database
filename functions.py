@@ -19,3 +19,4 @@ def connect_to_db():
 
 
 print("Connexion réussie !")
+
