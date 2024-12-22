@@ -39,6 +39,34 @@ def convert_date(date):
         return None
 
 
+def create_user():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
+    username = input("Enter your username: ")
+    firstName = input("Enter your first name: ")
+    lastName = input("Enter your last name: ")
+    email = input("Enter your email: ")
+    password = input("Enter your password: ")
+    print("\nYour informations summary")
+    print("username: ", username)
+    print("first name: ", firstName)
+    print("last name: ", lastName)
+    print("email: ", email)
+    confirm = input("Do you want to continue? [y/n] ").strip().lower()
+    if confirm == "y":
+        query = "Insert into user (username, firstName, lastName, password, email) values (%s, %s, %s, %s, %s)"
+        cursor.execute(query, (username, firstName, lastName, password, email))
+        mydb.commit()
+        mydb.close()
+        print("User created successfully")
+    else:
+        mydb.close()
+        print("User aborted")
+
+
 def create_meal():
     mydb = connect_to_db()
     if not mydb:
@@ -62,13 +90,13 @@ def create_meal():
                 break
         print("Invalid date format. Please enter it in the format DD-MM-YYYY or DD/MM/YYYY.")
 
-    print("\nInformations summary")
+    print("\nMeal informations summary")
     print("Name: ", name)
     print("Calories: ", calories)
     print("Date: ", date)
     confirm = input("Do you want to continue? [y/n] ").strip().lower()
     if confirm == "y":
-        query = "INSERT INTO meals (name, calories, date) VALUES (%s, %s, %s)"
+        query = "INSERT INTO meals (mealName, calories, mealDate) VALUES (%s, %s, %s)"
         cursor.execute(query, (name, calories, date))
         mydb.commit()
         mydb.close()
