@@ -163,7 +163,7 @@ def create_workouts():
             raise ValueError("Calories cannot be less than 0")
         break
     while True:
-        date_input = input("Enter the date of the meal (DD-MM-YYYY or DD/MM/YYYY): ").strip()
+        date_input = input("Enter the date of the workout (DD-MM-YYYY or DD/MM/YYYY): ").strip()
         if validate_date(date_input):
             date = convert_date(date_input)
             if date:
@@ -184,7 +184,51 @@ def create_workouts():
             print("Successfully created the workout")
             break
         elif confirm == "n":
+            mydb.close()
             print("Operation aborted.")
             return
+
+def create_sleeps():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
+    while True:
+        date_input = input("Enter the date of the sleep: ").strip()
+        if validate_date(date):
+            date = convert_date(date_input)
+            if date:
+                break
+        print("Invalid date format. Please enter it in the format DD-MM-YYYY or DD/MM/YYYY.")
+    sleepQuality = input("Enter the quality of your sleep: ").strip()
+    while True:
+        duration = int(input("Enter the duration of your sleep: "))
+        if duration <= 0:
+            raise ValueError("Duration cannot be less than 0")
+        break
+    print("\nSleep informations summary")
+    print("Date: ", date)
+    print("Quality: ", sleepQuality)
+    print("Duration: ", duration)
+    confirm = input("Do you want to continue? [y/n] ").strip().lower()
+    while confirm != "y" and confirm != "n":
+        confirm = input("Do you want to continue? [y/n] ").strip().lower()
+        if confirm == "y":
+            query = "INSERT INTO sleeps (durationInHours, sleepQuality, date) VALUES (%s, %s, %s)"
+            cursor.execute(query, (duration, sleepQuality, date))
+            mydb.commit()
+            mydb.close()
+            print("Successfully created the sleep")
+            break
+        elif confirm == "n":
+            mydb.close()
+            print("Operation aborted.")
+            return
+
+
+
+
+
 
 
