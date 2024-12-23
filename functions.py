@@ -152,7 +152,7 @@ def modify_meal():
 
     cursor = mydb.cursor()
 
-    meal_id = input("Enter the ID of the meal to modify: ").strip()
+    meal_id = int(input("Enter the meal ID: "))
 
     new_name = input("Enter the new name of the meal: ").strip()
 
@@ -198,6 +198,189 @@ def modify_meal():
     else:
         mydb.close()
         print("Operation aborted.")
+
+def display_meal_by_id():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+
+    cursor = mydb.cursor()
+
+    # Demander l'ID du repas
+    while True:
+        try:
+            meal_id = int(input("Enter the meal ID: ").strip())
+            if meal_id <= 0:
+                raise ValueError("Meal ID must be greater than 0.")
+            break
+        except ValueError as ve:
+            print(f"Invalid input: {ve}. Please try again.")
+
+    # Exécuter la requête
+    try:
+        query = "SELECT * FROM meals WHERE mealId = %s"
+        cursor.execute(query, (meal_id,))
+        meal = cursor.fetchone()
+
+        # Vérifier si un repas a été trouvé
+        if meal:
+            print("\nMeal Information:")
+            print(f"ID: {meal[0]}, Name: {meal[1]}, Calories: {meal[2]}, Date: {meal[3]}")
+        else:
+            print(f"No meal found with ID {meal_id}.")
+
+    except Error as e:
+        print("Error during database operation:", e)
+
+    finally:
+        mydb.close()
+
+
+
+def display_meal_by_name():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+
+    cursor = mydb.cursor()
+
+    meal_name = input("Enter the meal name: ").strip()
+
+    try:
+        query = "SELECT * FROM meals WHERE mealName = %s"
+        cursor.execute(query, (meal_name,))
+        meals = cursor.fetchall()
+
+        # Vérifier si des repas ont été trouvés
+        if meals:
+            print(f"\nMeals matching the name '{meal_name}':")
+            for meal in meals:
+                print(f"ID: {meal[0]}, Name: {meal[1]}, Calories: {meal[2]}, Date: {meal[3]}")
+        else:
+            print(f"No meals found with the name '{meal_name}'.")
+
+    except Error as e:
+        print("Error during database operation:", e)
+
+    finally:
+        mydb.close()
+
+
+def display_meal_by_calories():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+
+    cursor = mydb.cursor()
+
+    while True:
+        try:
+            calories = float(input("Enter the minimum number of calories: ").strip())
+            if calories <= 0:
+                raise ValueError("Calories must be greater than 0.")
+            break
+        except ValueError as ve:
+            print(f"Invalid input: {ve}. Please try again.")
+
+    try:
+        query = "SELECT * FROM meals WHERE calories >= %s ORDER BY calories ASC"
+        cursor.execute(query, (calories,))
+        meals = cursor.fetchall()
+
+        if meals:
+            print("\nMeals with at least", calories, "calories:")
+            for meal in meals:
+                print(f"ID: {meal[0]}, Name: {meal[1]}, Calories: {meal[2]}, Date: {meal[3]}")
+        else:
+            print(f"No meals found with at least {calories} calories.")
+
+    except Error as e:
+        print("Error during database operation:", e)
+
+    finally:
+        mydb.close()
+
+def display_meal_by_date():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+
+    cursor = mydb.cursor()
+
+    while True:
+        date_input = input("Enter the date (DD-MM-YYYY or DD/MM/YYYY): ").strip()
+        if validate_date(date_input):
+            date = convert_date(date_input)
+            if date:
+                break
+        print("Invalid date format. Please enter it in the format DD-MM-YYYY or DD/MM/YYYY.")
+
+    try:
+        query = "SELECT * FROM meals WHERE mealDate >= %s ORDER BY mealDate ASC"
+        cursor.execute(query, (date,))
+        meals = cursor.fetchall()
+
+        if meals:
+            print(f"\nMeals from {date} onwards (sorted by date):")
+            for meal in meals:
+                print(f"ID: {meal[0]}, Name: {meal[1]}, Calories: {meal[2]}, Date: {meal[3]}")
+        else:
+            print(f"No meals found from {date} onwards.")
+
+    except Error as e:
+        print("Error during database operation:", e)
+
+    finally:
+        mydb.close()
+
+
+
+def display_all_meals():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
+    query = "SELECT * FROM meals"
+    cursor.execute(query)
+    meals = cursor.fetchall()
+    if meals:
+        print("\nMeals:")
+        for meal in meals:
+            print(f"ID: {meal[0]}, Name: {meal[1]}, Calories: {meal[2]}, Date: {meal[3]}")
+        mydb.close()
+    else:
+        print("No meals found.")
+        mydb.close()
+
+
+
+def display_meals():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    while True:
+        choice = input("How do you want to see the meal ? : \n1. By id \n2. By name \n3. By number of calories \n4. By date \n5. Show all meals \nEnter a number").strip().lower()
+        while choice != "1" and choice != "2" and choice != "3":
+            print("Invalid input. Please try again.")
+            choice = input("Enter a number: ").strip().lower()
+            if choice == "1":
+                display_meal_by_id()
+            elif choice == "2":
+                display_meal_by_name()
+            elif choice == "3":
+                display_meal_by_calories()
+            elif choice == "4":
+                display_meal_by_date()
+            elif choice == "5":
+                display_all_meals()
+
+
 
 def create_workouts():
     mydb = connect_to_db()
@@ -250,7 +433,7 @@ def modify_workouts():
 
     cursor = mydb.cursor()
 
-    workout_id = input("Enter the ID of the workout to modify: ").strip()
+    workout_id = int(input("Enter the workout ID: "))
 
     new_name = input("Enter the new name of the workout: ").strip()
 
@@ -305,6 +488,29 @@ def modify_workouts():
         mydb.close()
         print("Operation aborted.")
 
+def display_workouts():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
+    workout_id = int(input("Enter the ID of the workout you want to display: "))
+    query = "SELECT * FROM workouts WHERE id = %s"
+    cursor.execute(query, (workout_id,))
+    mydb.commit()
+
+def display_all_workouts():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
+    query = "SELECT * FROM workouts"
+    cursor.execute(query)
+    workouts = cursor.fetchall()
+    mydb.commit()
+    for workout in workouts:
+        print(workout)
 
 def create_sleep():
     mydb = connect_to_db()
@@ -402,6 +608,9 @@ def modify_sleep():
     else:
         mydb.close()
         print("Operation aborted.")
+
+
+
 
 
 
