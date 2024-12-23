@@ -3,6 +3,7 @@ from mysql.connector import Error
 from datetime import datetime
 import bcrypt
 
+#Helper
 def connect_to_db():
     #Establish a connection to the MySQL database
     try:
@@ -17,8 +18,6 @@ def connect_to_db():
     except Error as e:
         print("Connexion error : ", e)
         return None
-
-
 
 def validate_date(date):
     #Validate date format (DD-MM-YYYY)
@@ -37,7 +36,7 @@ def convert_date(date):
     except ValueError:
         return None
 
-
+#User
 def create_user():
     mydb = connect_to_db()
     if not mydb:
@@ -71,7 +70,7 @@ def login():
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
-        return False
+        return False, None
 
     cursor = mydb.cursor()
     username = input("Enter your username: ")
@@ -98,7 +97,7 @@ def modify_user():
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
-        return False
+        return
     cursor = mydb.cursor()
     print("In order to modify your account, you must login again.")
     is_logged_in, user_id = login()
@@ -114,9 +113,32 @@ def modify_user():
         mydb.commit()
         mydb.close()
 
+def delete_user():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
+    print("In order to delete your account, you must login again.")
+    is_logged_in, user_id = login()
+    if is_logged_in:
+        choice = input("Are you sure you want to delete this account ? [y/n] ").strip().lower()
+        while (choice != "y" and choice != "n"):
+            choice = input("Are you sure you want to delete this account ? [y/n] ").strip().lower()
+        if choice == "y":
+            query = "DELETE FROM user WHERE userId = %s"
+            cursor.execute(query, (user_id, ))
+            mydb.commit()
+            mydb.close()
+            print("User deleted successfully, sorry to see you leave")
+            return
+        else:
+            mydb.close()
+            print("Operation aborted")
+            return
 
 
-
+#Meal
 def create_meal():
     mydb = connect_to_db()
     if not mydb:
@@ -251,8 +273,6 @@ def display_meal_by_id():
     finally:
         mydb.close()
 
-
-
 def display_meal_by_name():
     mydb = connect_to_db()
     if not mydb:
@@ -281,7 +301,6 @@ def display_meal_by_name():
 
     finally:
         mydb.close()
-
 
 def display_meal_by_calories():
     mydb = connect_to_db()
@@ -352,8 +371,6 @@ def display_meal_by_date():
     finally:
         mydb.close()
 
-
-
 def display_all_meals():
     mydb = connect_to_db()
     if not mydb:
@@ -371,8 +388,6 @@ def display_all_meals():
     else:
         print("No meals found.")
         mydb.close()
-
-
 
 def display_meals():
     mydb = connect_to_db()
@@ -396,7 +411,7 @@ def display_meals():
             display_all_meals()
 
 
-
+#Workouts
 def create_workouts():
     mydb = connect_to_db()
     if not mydb:
@@ -678,8 +693,7 @@ def display_workouts():
         display_all_workouts()
 
 
-
-
+#Sleep
 def create_sleep():
     mydb = connect_to_db()
     if not mydb:
@@ -811,7 +825,6 @@ def display_sleep_by_id():
     finally:
         mydb.close()
 
-
 def display_sleep_by_date():
     mydb = connect_to_db()
     if not mydb:
@@ -845,7 +858,6 @@ def display_sleep_by_date():
 
     finally:
         mydb.close()
-
 
 def display_sleep_by_duration():
     mydb = connect_to_db()
