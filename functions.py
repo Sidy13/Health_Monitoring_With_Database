@@ -366,7 +366,7 @@ def display_meals():
         return
     while True:
         choice = int(input("How do you want to see the meal ? : \n1. By id \n2. By name \n3. By number of calories \n4. By date \n5. Show all meals \nEnter a number"))
-        while choice != 1 and choice != 2 and choice != 3 and choice != 4 and choice != 5:
+        while choice not in [1, 2, 3, 4, 5]:
             print("Invalid input. Please try again.")
             choice = int(input("Enter the choice number: "))
         if choice == 1:
@@ -648,7 +648,7 @@ def display_workouts():
         return
     cursor = mydb.cursor()
     choice = int(input("How do you want to see the workouts? \n1. By id \n2. By name \n3. By date \n4. By calories burned \n5. Show all workouts "))
-    while choice != 1 and choice != 2 and choice != 3 and choice != 4 and choice != 5:
+    while choice not in [1, 2, 3, 4, 5]:
         print("Invalid input. Please try again.")
         choice = int(input("Enter the choice number: "))
     if choice == 1:
@@ -762,6 +762,182 @@ def modify_sleep():
         mydb.close()
         print("Operation aborted.")
 
+def display_sleep_by_id():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+
+    cursor = mydb.cursor()
+
+    while True:
+        try:
+            sleep_id = int(input("Enter the sleep ID: ").strip())
+            if sleep_id <= 0:
+                raise ValueError("Sleep ID must be greater than 0.")
+            break
+        except ValueError as ve:
+            print(f"Invalid input: {ve}. Please try again.")
+
+    try:
+        query = "SELECT * FROM sleep WHERE sleepId = %s"
+        cursor.execute(query, (sleep_id,))
+        sleep_entry = cursor.fetchone()
+
+        if sleep_entry:
+            print("\nSleep Information:")
+            print(f"ID: {sleep_entry[0]}, Date: {sleep_entry[1]}, Quality: {sleep_entry[2]}, Duration: {sleep_entry[3]} hours")
+        else:
+            print(f"No sleep entry found with ID {sleep_id}.")
+
+    except Error as e:
+        print("Error during database operation:", e)
+
+    finally:
+        mydb.close()
+
+
+def display_sleep_by_date():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+
+    cursor = mydb.cursor()
+
+    while True:
+        date_input = input("Enter the date (DD-MM-YYYY or DD/MM/YYYY): ").strip()
+        if validate_date(date_input):
+            date = convert_date(date_input)
+            if date:
+                break
+        print("Invalid date format. Please enter it in the format DD-MM-YYYY or DD/MM/YYYY.")
+
+    try:
+        query = "SELECT * FROM sleep WHERE sleepDate = %s ORDER BY sleepDate ASC"
+        cursor.execute(query, (date,))
+        sleep_entries = cursor.fetchall()
+
+        if sleep_entries:
+            print(f"\nSleep entries from {date}")
+            for sleep in sleep_entries:
+                print(f"ID: {sleep[0]}, Date: {sleep[1]}, Quality: {sleep[2]}, Duration: {sleep[3]} hours")
+        else:
+            print(f"No sleep entries found from {date} onwards.")
+
+    except Error as e:
+        print("Error during database operation:", e)
+
+    finally:
+        mydb.close()
+
+
+def display_sleep_by_duration():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+
+    cursor = mydb.cursor()
+
+    while True:
+        try:
+            min_duration = float(input("Enter the minimum sleep duration (in hours): ").strip())
+            if min_duration <= 0:
+                raise ValueError("Sleep duration must be greater than 0.")
+            break
+        except ValueError as ve:
+            print(f"Invalid input: {ve}. Please try again.")
+
+    try:
+        query = "SELECT * FROM sleep WHERE duration >= %s ORDER BY duration ASC"
+        cursor.execute(query, (min_duration,))
+        sleep_entries = cursor.fetchall()
+
+        if sleep_entries:
+            print(f"\nSleep entries with at least {min_duration} hours (sorted by duration):")
+            for sleep in sleep_entries:
+                print(f"ID: {sleep[0]}, Date: {sleep[1]}, Quality: {sleep[2]}, Duration: {sleep[3]} hours")
+        else:
+            print(f"No sleep entries found with at least {min_duration} hours.")
+
+    except Error as e:
+        print("Error during database operation:", e)
+
+    finally:
+        mydb.close()
+
+def display_sleep_by_quality():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+
+    cursor = mydb.cursor()
+
+    sleep_quality = input("Enter the sleep quality to filter by (e.g., 'Good', 'Average', 'Poor'): ").strip()
+
+    try:
+        query = "SELECT * FROM sleep WHERE quality = %s ORDER BY sleepDate ASC"
+        cursor.execute(query, (sleep_quality,))
+        sleep_entries = cursor.fetchall()
+
+        if sleep_entries:
+            print(f"\nSleep entries with quality '{sleep_quality}' (sorted by date):")
+            for sleep in sleep_entries:
+                print(f"ID: {sleep[0]}, Date: {sleep[1]}, Quality: {sleep[2]}, Duration: {sleep[3]} hours")
+        else:
+            print(f"No sleep entries found with quality '{sleep_quality}'.")
+
+    except Error as e:
+        print("Error during database operation:", e)
+
+    finally:
+        mydb.close()
+
+def display_all_sleeps():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
+    query = "SELECT * FROM sleep ORDER BY sleepDate ASC"
+    cursor.execute(query)
+    sleep_entries = cursor.fetchall()
+    if sleep_entries:
+        print(f"\nAll sleep entries:")
+        for sleep in sleep_entries:
+            print(f"ID: {sleep[0]}, Date: {sleep[1]}, Quality: {sleep[2]}, Duration: {sleep[3]} hours")
+    else:
+        print(f"No sleep entries found.")
+    mydb.close()
+
+def display_sleep():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
+    choice = int(input("How do you want to see the sleep entries? \n"
+                       "1. By ID \n"
+                       "2. By date \n"
+                       "3. By duration \n"
+                       "4. By quality \n"
+                       "5. Show all sleep entries \n"
+                       "Enter your choice: "))
+    while choice not in [1, 2, 3, 4, 5]:
+        print("Invalid input. Please try again.")
+        choice = int(input("Enter the choice number: "))
+    if choice == 1:
+        display_sleep_by_id()
+    elif choice == 2:
+        display_sleep_by_date()
+    elif choice == 3:
+        display_sleep_by_duration()
+    elif choice == 4:
+        display_sleep_by_quality()
+    elif choice == 5:
+        display_all_sleeps()
 
 
 
