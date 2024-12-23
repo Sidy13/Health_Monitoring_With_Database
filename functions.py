@@ -1,8 +1,5 @@
-from random import choice
-
 import mysql.connector
 from mysql.connector import Error
-import re
 from datetime import datetime
 import bcrypt
 
@@ -70,11 +67,7 @@ def create_user():
         mydb.close()
         print("User aborted")
 
-
-
-
-
-def connect():
+def login():
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -86,20 +79,42 @@ def connect():
 
     query = "SELECT password FROM user WHERE username = %s"
     cursor.execute(query, (username,))
-    result = cursor.fetchone()
+    user_id, result = cursor.fetchone()
 
     if result:
         hashed_password = result[0]
         if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
             print("Login successful")
-            return True
+            return True, user_id
         else:
             print("Username or password incorrect")
     else:
         print("Username or password incorrect")
 
     mydb.close()
-    return False
+    return False, None
+
+def modify_user():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return False
+    cursor = mydb.cursor()
+    print("In order to modify your account, you must login again.")
+    is_logged_in, user_id = login()
+    if is_logged_in:
+        username = input("Enter your username: ")
+        firstName = input("Enter your first name: ")
+        lastName = input("Enter your last name: ")
+        email = input("Enter your email: ")
+        password = input("Enter your password: ")
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        query = "UPDATE user SET username = %s, firstName = %s, lastName = %s, email = %s, password = %s WHERE userId = %s"
+        cursor.execute(query, (username, firstName, lastName, email, hashed_password, user_id, ))
+        mydb.commit()
+        mydb.close()
+
+
 
 
 def create_meal():
