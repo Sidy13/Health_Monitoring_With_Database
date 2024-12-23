@@ -1,4 +1,4 @@
-
+from random import choice
 
 import mysql.connector
 from mysql.connector import Error
@@ -365,20 +365,20 @@ def display_meals():
         print("Database connection failed. Operation aborted.")
         return
     while True:
-        choice = input("How do you want to see the meal ? : \n1. By id \n2. By name \n3. By number of calories \n4. By date \n5. Show all meals \nEnter a number").strip().lower()
-        while choice != "1" and choice != "2" and choice != "3":
+        choice = int(input("How do you want to see the meal ? : \n1. By id \n2. By name \n3. By number of calories \n4. By date \n5. Show all meals \nEnter a number"))
+        while choice != 1 and choice != 2 and choice != 3 and choice != 4 and choice != 5:
             print("Invalid input. Please try again.")
-            choice = input("Enter a number: ").strip().lower()
-            if choice == "1":
-                display_meal_by_id()
-            elif choice == "2":
-                display_meal_by_name()
-            elif choice == "3":
-                display_meal_by_calories()
-            elif choice == "4":
-                display_meal_by_date()
-            elif choice == "5":
-                display_all_meals()
+            choice = int(input("Enter the choice number: "))
+        if choice == 1:
+            display_meal_by_id()
+        elif choice == 2:
+            display_meal_by_name()
+        elif choice == 3:
+            display_meal_by_calories()
+        elif choice == 4:
+            display_meal_by_date()
+        elif choice == 5:
+            display_all_meals()
 
 
 
@@ -488,16 +488,140 @@ def modify_workouts():
         mydb.close()
         print("Operation aborted.")
 
-def display_workouts():
+def display_workout_by_id():
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
         return
+
     cursor = mydb.cursor()
-    workout_id = int(input("Enter the ID of the workout you want to display: "))
-    query = "SELECT * FROM workouts WHERE id = %s"
-    cursor.execute(query, (workout_id,))
-    mydb.commit()
+
+    while True:
+        try:
+            workout_id = int(input("Enter the workout ID: ").strip())
+            if workout_id <= 0:
+                raise ValueError("Workout ID must be greater than 0.")
+            break
+        except ValueError as ve:
+            print(f"Invalid input: {ve}. Please try again.")
+
+    try:
+        query = "SELECT * FROM workouts WHERE workoutId = %s"
+        cursor.execute(query, (workout_id,))
+        workout = cursor.fetchone()
+
+        if workout:
+            print("\nWorkout Information:")
+            print(f"ID: {workout[0]}, Name: {workout[1]}, Duration: {workout[2]} minutes, "
+                  f"Calories Burned: {workout[3]}, Date: {workout[4]}")
+        else:
+            print(f"No workout found with ID {workout_id}.")
+
+    except Error as e:
+        print("Error during database operation:", e)
+
+    finally:
+        mydb.close()
+
+def display_workout_by_name():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+
+    cursor = mydb.cursor()
+
+    workout_name = input("Enter the workout name: ").strip()
+
+    try:
+        query = "SELECT * FROM workouts WHERE workoutName = %s"
+        cursor.execute(query, (workout_name,))
+        workouts = cursor.fetchall()
+
+        if workouts:
+            print(f"\nWorkouts matching the name '{workout_name}':")
+            for workout in workouts:
+                print(f"ID: {workout[0]}, Name: {workout[1]}, Duration: {workout[2]} minutes, "
+                      f"Calories Burned: {workout[3]}, Date: {workout[4]}")
+        else:
+            print(f"No workouts found with the name '{workout_name}'.")
+
+    except Error as e:
+        print("Error during database operation:", e)
+
+    finally:
+        mydb.close()
+
+def display_workout_by_date():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+
+    cursor = mydb.cursor()
+
+    while True:
+        date_input = input("Enter the date (DD-MM-YYYY or DD/MM/YYYY): ").strip()
+        if validate_date(date_input):
+            date = convert_date(date_input)
+            if date:
+                break
+        print("Invalid date format. Please enter it in the format DD-MM-YYYY or DD/MM/YYYY.")
+
+    try:
+        query = "SELECT * FROM workouts WHERE workoutDate >= %s ORDER BY workoutDate ASC"
+        cursor.execute(query, (date,))
+        workouts = cursor.fetchall()
+
+        if workouts:
+            print(f"\nWorkouts from {date} onwards (sorted by date):")
+            for workout in workouts:
+                print(f"ID: {workout[0]}, Name: {workout[1]}, Duration: {workout[2]} minutes, "
+                      f"Calories Burned: {workout[3]}, Date: {workout[4]}")
+        else:
+            print(f"No workouts found from {date} onwards.")
+
+    except Error as e:
+        print("Error during database operation:", e)
+
+    finally:
+        mydb.close()
+
+def display_workout_by_calories():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+
+    cursor = mydb.cursor()
+
+    while True:
+        try:
+            min_calories = float(input("Enter the minimum number of calories burned: ").strip())
+            if min_calories <= 0:
+                raise ValueError("Calories burned must be greater than 0.")
+            break
+        except ValueError as ve:
+            print(f"Invalid input: {ve}. Please try again.")
+
+    try:
+        query = "SELECT * FROM workouts WHERE caloriesBurned >= %s ORDER BY caloriesBurned ASC"
+        cursor.execute(query, (min_calories,))
+        workouts = cursor.fetchall()
+
+        if workouts:
+            print(f"\nWorkouts burning at least {min_calories} calories (sorted by calories burned):")
+            for workout in workouts:
+                print(f"ID: {workout[0]}, Name: {workout[1]}, Duration: {workout[2]} minutes, "
+                      f"Calories Burned: {workout[3]}, Date: {workout[4]}")
+        else:
+            print(f"No workouts found burning at least {min_calories} calories.")
+
+    except Error as e:
+        print("Error during database operation:", e)
+
+    finally:
+        mydb.close()
 
 def display_all_workouts():
     mydb = connect_to_db()
@@ -505,12 +629,41 @@ def display_all_workouts():
         print("Database connection failed. Operation aborted.")
         return
     cursor = mydb.cursor()
-    query = "SELECT * FROM workouts"
+    query = "SELECT * FROM workouts ORDER BY workoutDate ASC"
     cursor.execute(query)
     workouts = cursor.fetchall()
-    mydb.commit()
-    for workout in workouts:
-        print(workout)
+    if workouts:
+        print(f"\nAll workouts:")
+        for workout in workouts:
+            print(f"ID: {workout[0]}, Name: {workout[1]}, Duration: {workout[2]} minutes, "
+                  f"Calories Burned: {workout[3]}, Date: {workout[4]}")
+    else:
+        print(f"No workouts found.")
+    mydb.close()
+
+def display_workouts():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
+    choice = int(input("How do you want to see the workouts? \n1. By id \n2. By name \n3. By date \n4. By calories burned \n5. Show all workouts "))
+    while choice != 1 and choice != 2 and choice != 3 and choice != 4 and choice != 5:
+        print("Invalid input. Please try again.")
+        choice = int(input("Enter the choice number: "))
+    if choice == 1:
+        display_workout_by_id()
+    if choice == 2:
+        display_workout_by_name()
+    elif choice == 3:
+        display_workout_by_date()
+    elif choice == 4:
+        display_workout_by_calories()
+    elif choice == 5:
+        display_all_workouts()
+
+
+
 
 def create_sleep():
     mydb = connect_to_db()
