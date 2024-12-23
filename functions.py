@@ -144,6 +144,60 @@ def create_meal():
             print("Operation aborted.")
             return
 
+def modify_meal():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+
+    cursor = mydb.cursor()
+
+    meal_id = input("Enter the ID of the meal to modify: ").strip()
+
+    new_name = input("Enter the new name of the meal: ").strip()
+
+
+    while True:
+        try:
+            new_calories = float(input("Enter the new number of calories for the meal: "))
+            if new_calories <= 0:
+                raise ValueError("Calories must be greater than 0.")
+            break
+        except ValueError as ve:
+            print(f"Invalid input for the calories: {ve}. Please try again.")
+
+    # Obtenir la nouvelle date
+    while True:
+        date_input = input("Enter the new date of the meal (DD-MM-YYYY or DD/MM/YYYY): ").strip()
+        if validate_date(date_input):
+            new_date = convert_date(date_input)
+            if new_date:
+                break
+        print("Invalid date format. Please enter it in the format DD-MM-YYYY or DD/MM/YYYY.")
+
+    print("\nMeal information summary")
+    print(f"ID: {meal_id}")
+    print(f"Name: {new_name}")
+    print(f"Calories: {new_calories}")
+    print(f"Date: {new_date}")
+
+    confirm = input("Do you want to continue? [y/n]: ").strip().lower()
+    while confirm not in ["y", "n"]:
+        confirm = input("Invalid input. Do you want to continue? [y/n]: ").strip().lower()
+
+    if confirm == "y":
+        try:
+            query = "UPDATE meals SET name = %s, calories = %s, mealDate = %s WHERE mealId = %s"
+            cursor.execute(query, (new_name, new_calories, new_date, meal_id))
+            mydb.commit()
+            print("Successfully updated the meal.")
+        except Error as e:
+            print("Error during database operation:", e)
+        finally:
+            mydb.close()
+    else:
+        mydb.close()
+        print("Operation aborted.")
 
 def create_workouts():
     mydb = connect_to_db()
@@ -188,6 +242,70 @@ def create_workouts():
             print("Operation aborted.")
             return
 
+def modify_workouts():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+
+    cursor = mydb.cursor()
+
+    workout_id = input("Enter the ID of the workout to modify: ").strip()
+
+    new_name = input("Enter the new name of the workout: ").strip()
+
+    while True:
+        try:
+            new_duration = int(input("Enter the new duration of the workout (in minutes): ").strip())
+            if new_duration <= 0:
+                raise ValueError("Duration must be greater than 0.")
+            break
+        except ValueError as ve:
+            print(f"Invalid input for the duration: {ve}. Please try again.")
+
+    while True:
+        try:
+            new_calories = float(input("Enter the new number of calories burned during the workout: "))
+            if new_calories <= 0:
+                raise ValueError("Calories burned must be greater than 0.")
+            break
+        except ValueError as ve:
+            print(f"Invalid input for the calories burned: {ve}. Please try again.")
+
+    while True:
+        date_input = input("Enter the new date of the workout (DD-MM-YYYY or DD/MM/YYYY): ").strip()
+        if validate_date(date_input):
+            new_date = convert_date(date_input)
+            if new_date:
+                break
+        print("Invalid date format. Please enter it in the format DD-MM-YYYY or DD/MM/YYYY.")
+
+    print("\nWorkout information summary")
+    print(f"ID: {workout_id}")
+    print(f"Name: {new_name}")
+    print(f"Duration: {new_duration} minutes")
+    print(f"Calories burned: {new_calories}")
+    print(f"Date: {new_date}")
+
+    confirm = input("Do you want to continue? [y/n]: ").strip().lower()
+    while confirm not in ["y", "n"]:
+        confirm = input("Invalid input. Do you want to continue? [y/n]: ").strip().lower()
+
+    if confirm == "y":
+        try:
+            query = "UPDATE workouts SET workoutName = %s, duration = %s, caloriesBurned = %s, workoutDate = %s WHERE id = %s"
+            cursor.execute(query, (new_name, new_duration, new_calories, new_date, workout_id))
+            mydb.commit()
+            print("Successfully updated the workout.")
+        except Error as e:
+            print("Error during database operation:", e)
+        finally:
+            mydb.close()
+    else:
+        mydb.close()
+        print("Operation aborted.")
+
+
 def create_sleep():
     mydb = connect_to_db()
     if not mydb:
@@ -225,6 +343,69 @@ def create_sleep():
             mydb.close()
             print("Operation aborted.")
             return
+
+def modify_sleep():
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+
+    cursor = mydb.cursor()
+
+    while True:
+        current_date_input = input("Enter the date of the sleep to modify (DD-MM-YYYY or DD/MM/YYYY): ").strip()
+        if validate_date(current_date_input):
+            current_date = convert_date(current_date_input)
+            if current_date:
+                break
+        print("Invalid date format. Please enter it in the format DD-MM-YYYY or DD/MM/YYYY.")
+
+    while True:
+        new_date_input = input("Enter the new date of the sleep (DD-MM-YYYY or DD/MM/YYYY): ").strip()
+        if validate_date(new_date_input):
+            new_date = convert_date(new_date_input)
+            if new_date:
+                break
+        print("Invalid date format. Please enter it in the format DD-MM-YYYY or DD/MM/YYYY.")
+
+    sleep_quality = input("Enter the quality of your sleep: ").strip()
+
+    while True:
+        try:
+            duration = int(input("Enter the duration of your sleep (in hours): "))
+            if duration <= 0:
+                raise ValueError("Duration must be greater than 0.")
+            break
+        except ValueError as ve:
+            print(f"Invalid input: {ve}. Please try again.")
+
+    print("\nSleep informations summary")
+    print(f"Current Date: {current_date}")
+    print(f"New Date: {new_date}")
+    print(f"Quality: {sleep_quality}")
+    print(f"Duration: {duration} hours")
+
+    confirm = input("Do you want to continue? [y/n]: ").strip().lower()
+    while confirm not in ["y", "n"]:
+        confirm = input("Invalid input. Do you want to continue? [y/n]: ").strip().lower()
+
+    if confirm == "y":
+        try:
+            query = "UPDATE sleep SET duration = %s, quality = %s, date = %s WHERE date = %s"
+            cursor.execute(query, (duration, sleep_quality, new_date, current_date))
+            mydb.commit()
+            print("Successfully updated the sleep record.")
+        except Error as e:
+            print("Error during database operation:", e)
+        finally:
+            mydb.close()
+    else:
+        mydb.close()
+        print("Operation aborted.")
+
+
+
+
 
 
 
