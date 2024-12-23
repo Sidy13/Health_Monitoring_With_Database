@@ -188,7 +188,7 @@ def create_workouts():
             print("Operation aborted.")
             return
 
-def create_sleeps():
+def create_sleep():
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
