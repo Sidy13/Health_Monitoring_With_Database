@@ -435,6 +435,7 @@ def delete_meal(user_id):
         mealName = meal[1]
         mealDate = meal[3]
         mealDate = reverse_convert_date(mealDate)
+
         while True:
             confirm = input(f"\nDo you want to delete the {mealName} from the {mealDate} ? (y/n): ").lower().strip()
             if confirm in ["y", "n"]:
