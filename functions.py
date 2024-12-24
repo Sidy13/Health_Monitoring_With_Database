@@ -410,7 +410,40 @@ def display_meals(user_id):
         elif choice == 5:
             display_all_meals(user_id)
 
+def delete_meal(user_id):
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
+    try:
+        meal_id = int(input("Enter the ID of the meal you would like to delete: "))
+        if meal_id <= 0:
+            raise ValueError("Meal ID must be greater than 0.")
+        query_check = "SELECT * FROM meals WHERE mealId = %s AND userId = %s"
+        cursor.execute(query_check, (meal_id,user_id))
+        meal = cursor.fetchone()
+        if not meal:
+            print("\nMeal does not exist.")
+            return
+        while True:
+            confirm = input("\nDo you want to delete the meal? (y/n): ").lower().strip()
+            if confirm in ["y", "n"]:
+                break
+            print("Invalid input. Please enter 'y' or 'n'.")
 
+        if confirm == "y":
+            query = "DELETE FROM meals WHERE mealId = %s AND userId = %s"
+            cursor.execute(query, (meal_id, user_id))
+            mydb.commit()
+            print("\nMeal has been deleted.")
+        else:
+            print("\nMeal was not deleted.")
+        mydb.close()
+    except ValueError as ve:
+        print(f"Invalid input: {ve}. Please try again.")
+    except Error as e:
+        print("Error during database operation:", e)
 
 
 def manage_meals(user_id):
@@ -418,6 +451,7 @@ def manage_meals(user_id):
     print("1. Create Meal")
     print("2. Modify Meal")
     print("3. Display Meals")
+    print("4. Delete Meal")
     choice = int(input("Enter your choice: "))
     if choice == 1:
         create_meal(user_id)
@@ -425,6 +459,8 @@ def manage_meals(user_id):
         modify_meal(user_id)
     elif choice == 3:
         display_meals(user_id)
+    elif choice == 4:
+        delete_meal(user_id)
     else:
         print("Invalid choice.")
 
@@ -709,11 +745,51 @@ def display_workouts(user_id):
     elif choice == 5:
         display_all_workouts(user_id)
 
+def delete_workout(user_id):
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    '''cursor = mydb.cursor()
+    workoutID = int(input("Enter the ID of the workout you would like to delete: "))
+    query_check = "SELECT * FROM workouts WHERE userId = %s AND workoutID = %s"
+    cursor.execute(query_check, (user_id,workoutID))'''
+    try:
+        workoutId = int(input("Enter the ID of the workout you would like to delete: "))
+        if workoutId <= 0:
+            raise ValueError("Workout ID must be greater than 0.")
+        cursor = mydb.cursor()
+        query_check = "SELECT * FROM workouts WHERE userId = %s AND workoutID = %s"
+        cursor.execute(query_check, (user_id,workoutId))
+        workouts = cursor.fetchone()
+        if not workouts:
+            print("No workouts with ID ",workoutId," found.")
+            return
+        while True:
+            confirm = input("\nDo you want to delete the meal? (y/n): ").lower().strip()
+            if confirm in ["y", "n"]:
+                break
+            print("Invalid input. Please enter 'y' or 'n'.")
+
+        if confirm == "y":
+            query = "DELETE FROM workouts WHERE workoutId = %s AND userId = %s"
+            cursor.execute(query, (workoutId, user_id))
+            mydb.commit()
+            print("\nMeal has been deleted.")
+        else:
+            print("\nMeal was not deleted.")
+    except ValueError as ve:
+        print(f"Invalid input: {ve}. Please try again.")
+    except Error as e:
+        print("Error during database operation:", e)
+
+
 def manage_workouts(user_id):
     print("\nWorkout Management")
     print("1. Create Workout")
     print("2. Modify Workout")
     print("3. Display Workouts")
+    print("4. Delete Workout")
     choice = int(input("Enter your choice: "))
     if choice == 1:
         create_workouts(user_id)
@@ -721,6 +797,8 @@ def manage_workouts(user_id):
         modify_workouts(user_id)
     elif choice == 3:
         display_workouts(user_id)
+    elif choice == 4:
+        delete_workout(user_id)
     else:
         print("Invalid choice.")
 
@@ -997,11 +1075,52 @@ def display_sleep(user_id):
     elif choice == 5:
         display_all_sleeps(user_id)
 
+def delete_sleep(user_id):
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
+    try:
+        sleepId = int(input("Enter the Id of the sleep you would like to delete: "))
+        if sleepId <= 0:
+            raise ValueError("Invalid input. Please try again.")
+        query_check = "Select * FROM sleep WHERE userid = %s AND sleepId = %s;"
+        cursor.execute(query_check, (user_id, sleepId))
+        sleep = cursor.fetchone()
+        if not sleep:
+            print(f"No sleep entry with id {sleepId} found.")
+            mydb.close()
+            return
+        while True:
+            confirm = input(("Are you sure you want to delete the sleep ",sleep,"[y/n] ? : ")).lower().strip()
+            if confirm in ["y", "n"]:
+                break
+            print("Invalid input. Please try again.")
+        if confirm == "y":
+            query = "DELETE FROM sleep WHERE userid = %s AND sleepId = %s;"
+            cursor.execute(query, (user_id,sleepId))
+            mydb.commit()
+            print("Sleep entry deleted.")
+        else:
+            print("Operation aborted.")
+            return
+        mydb.close()
+    except ValueError as ve:
+        print(f"Invalid input: {ve}. Please try again.")
+    except Error as e:
+        print("Error during database operation:", e)
+
+
+
+
+
 def manage_sleep(user_id):
     print("\nSleep Management")
     print("1. Create Sleep Record")
     print("2. Modify Sleep Record")
     print("3. Display Sleep Records")
+    print("4. Delete Sleep Record")
     choice = int(input("Enter your choice: "))
     if choice == 1:
         create_sleep(user_id)
@@ -1009,6 +1128,8 @@ def manage_sleep(user_id):
         modify_sleep(user_id)
     elif choice == 3:
         display_sleep(user_id)
+    elif choice == 4:
+        delete_sleep(user_id)
     else:
         print("Invalid choice.")
 
