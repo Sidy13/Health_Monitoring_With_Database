@@ -426,8 +426,10 @@ def delete_meal(user_id):
         if not meal:
             print("\nMeal does not exist.")
             return
+        mealName = meal[1]
+        mealDate = meal[3]
         while True:
-            confirm = input("\nDo you want to delete the meal? (y/n): ").lower().strip()
+            confirm = input(f"\nDo you want to delete the {mealName} from the {mealDate} ? (y/n): ").lower().strip()
             if confirm in ["y", "n"]:
                 break
             print("Invalid input. Please enter 'y' or 'n'.")
@@ -750,10 +752,6 @@ def delete_workout(user_id):
     if not mydb:
         print("Database connection failed. Operation aborted.")
         return
-    '''cursor = mydb.cursor()
-    workoutID = int(input("Enter the ID of the workout you would like to delete: "))
-    query_check = "SELECT * FROM workouts WHERE userId = %s AND workoutID = %s"
-    cursor.execute(query_check, (user_id,workoutID))'''
     try:
         workoutId = int(input("Enter the ID of the workout you would like to delete: "))
         if workoutId <= 0:
@@ -765,8 +763,10 @@ def delete_workout(user_id):
         if not workouts:
             print("No workouts with ID ",workoutId," found.")
             return
+        workoutName = workouts[1]
+        workoutDate = workouts[4]
         while True:
-            confirm = input("\nDo you want to delete the meal? (y/n): ").lower().strip()
+            confirm = input(f"\nDo you want to delete the {workoutName} from the {workoutDate} ? (y/n):").lower().strip()
             if confirm in ["y", "n"]:
                 break
             print("Invalid input. Please enter 'y' or 'n'.")
@@ -1092,8 +1092,10 @@ def delete_sleep(user_id):
             print(f"No sleep entry with id {sleepId} found.")
             mydb.close()
             return
+
+        sleepDate = sleep[3]
         while True:
-            confirm = input(("Are you sure you want to delete the sleep ",sleep,"[y/n] ? : ")).lower().strip()
+            confirm = input(f"Are you sure you want to delete the sleep {sleepId} from the {sleepDate} ? (y/n): ").lower().strip()
             if confirm in ["y", "n"]:
                 break
             print("Invalid input. Please try again.")
@@ -1110,10 +1112,6 @@ def delete_sleep(user_id):
         print(f"Invalid input: {ve}. Please try again.")
     except Error as e:
         print("Error during database operation:", e)
-
-
-
-
 
 def manage_sleep(user_id):
     print("\nSleep Management")
