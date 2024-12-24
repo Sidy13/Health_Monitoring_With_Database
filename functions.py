@@ -139,7 +139,7 @@ def delete_user():
 
 
 #Meal
-def create_meal():
+def create_meal(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -171,8 +171,8 @@ def create_meal():
     while confirm != "y" and confirm != "n":
         confirm = input("Do you want to continue? [y/n] ").strip().lower()
         if confirm == "y":
-            query = "INSERT INTO meals (mealName, calories, mealDate) VALUES (%s, %s, %s)"
-            cursor.execute(query, (name, calories, date))
+            query = "INSERT INTO meals (mealName, calories, mealDate, userId) VALUES (%s, %s, %s, %s)"
+            cursor.execute(query, (name, calories, date, user_id))
             mydb.commit()
             mydb.close()
             print("Successfully created the meal")
@@ -181,7 +181,7 @@ def create_meal():
             print("Operation aborted.")
             return
 
-def modify_meal():
+def modify_meal(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -224,8 +224,8 @@ def modify_meal():
 
     if confirm == "y":
         try:
-            query = "UPDATE meals SET name = %s, calories = %s, mealDate = %s WHERE mealId = %s"
-            cursor.execute(query, (new_name, new_calories, new_date, meal_id))
+            query = "UPDATE meals SET name = %s, calories = %s, mealDate = %s WHERE mealId = %s and userId = %s"
+            cursor.execute(query, (new_name, new_calories, new_date, meal_id, user_id))
             mydb.commit()
             print("Successfully updated the meal.")
         except Error as e:
@@ -236,7 +236,7 @@ def modify_meal():
         mydb.close()
         print("Operation aborted.")
 
-def display_meal_by_id():
+def display_meal_by_id(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -256,8 +256,8 @@ def display_meal_by_id():
 
     # Exécuter la requête
     try:
-        query = "SELECT * FROM meals WHERE mealId = %s"
-        cursor.execute(query, (meal_id,))
+        query = "SELECT * FROM meals WHERE mealId = %s AND userId = %s"
+        cursor.execute(query, (meal_id,user_id))
         meal = cursor.fetchone()
 
         # Vérifier si un repas a été trouvé
@@ -273,7 +273,7 @@ def display_meal_by_id():
     finally:
         mydb.close()
 
-def display_meal_by_name():
+def display_meal_by_name(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -284,8 +284,8 @@ def display_meal_by_name():
     meal_name = input("Enter the meal name: ").strip()
 
     try:
-        query = "SELECT * FROM meals WHERE mealName = %s"
-        cursor.execute(query, (meal_name,))
+        query = "SELECT * FROM meals WHERE mealName = %s AND userId = %s"
+        cursor.execute(query, (meal_name, user_id))
         meals = cursor.fetchall()
 
         # Vérifier si des repas ont été trouvés
@@ -302,7 +302,7 @@ def display_meal_by_name():
     finally:
         mydb.close()
 
-def display_meal_by_calories():
+def display_meal_by_calories(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -320,8 +320,8 @@ def display_meal_by_calories():
             print(f"Invalid input: {ve}. Please try again.")
 
     try:
-        query = "SELECT * FROM meals WHERE calories >= %s ORDER BY calories ASC"
-        cursor.execute(query, (calories,))
+        query = "SELECT * FROM meals WHERE calories >= %s AND userId ORDER BY calories ASC"
+        cursor.execute(query, (calories,user_id))
         meals = cursor.fetchall()
 
         if meals:
@@ -337,7 +337,7 @@ def display_meal_by_calories():
     finally:
         mydb.close()
 
-def display_meal_by_date():
+def display_meal_by_date(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -354,8 +354,8 @@ def display_meal_by_date():
         print("Invalid date format. Please enter it in the format DD-MM-YYYY or DD/MM/YYYY.")
 
     try:
-        query = "SELECT * FROM meals WHERE mealDate >= %s ORDER BY mealDate ASC"
-        cursor.execute(query, (date,))
+        query = "SELECT * FROM meals WHERE mealDate >= %s and userId = %s ORDER BY mealDate ASC"
+        cursor.execute(query, (date,user_id))
         meals = cursor.fetchall()
 
         if meals:
@@ -371,14 +371,14 @@ def display_meal_by_date():
     finally:
         mydb.close()
 
-def display_all_meals():
+def display_all_meals(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
         return
     cursor = mydb.cursor()
-    query = "SELECT * FROM meals"
-    cursor.execute(query)
+    query = "SELECT * FROM meals where userId = %s "
+    cursor.execute(query, (user_id,))
     meals = cursor.fetchall()
     if meals:
         print("\nMeals:")
@@ -389,7 +389,7 @@ def display_all_meals():
         print("No meals found.")
         mydb.close()
 
-def display_meals():
+def display_meals(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -400,19 +400,36 @@ def display_meals():
             print("Invalid input. Please try again.")
             choice = int(input("Enter the choice number: "))
         if choice == 1:
-            display_meal_by_id()
+            display_meal_by_id(user_id)
         elif choice == 2:
-            display_meal_by_name()
+            display_meal_by_name(user_id)
         elif choice == 3:
-            display_meal_by_calories()
+            display_meal_by_calories(user_id)
         elif choice == 4:
-            display_meal_by_date()
+            display_meal_by_date(user_id)
         elif choice == 5:
-            display_all_meals()
+            display_all_meals(user_id)
 
+
+
+
+def manage_meals(user_id):
+    print("\nMeal Management")
+    print("1. Create Meal")
+    print("2. Modify Meal")
+    print("3. Display Meals")
+    choice = int(input("Enter your choice: "))
+    if choice == 1:
+        create_meal(user_id)
+    elif choice == 2:
+        modify_meal(user_id)
+    elif choice == 3:
+        display_meals(user_id)
+    else:
+        print("Invalid choice.")
 
 #Workouts
-def create_workouts():
+def create_workouts(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -420,7 +437,7 @@ def create_workouts():
     cursor = mydb.cursor()
     name = input("Enter the name of the workout: ").strip()
     while True:
-        duration = int(input("Enter the duration of the workout: ").strip())
+        duration = int(input("Enter the duration in minutes of the workout: ").strip())
         if duration <= 0:
             raise ValueError("Duration cannot be less than 0")
         break
@@ -444,8 +461,8 @@ def create_workouts():
     while confirm != "y" and confirm != "n":
         confirm = input("Do you want to continue? [y/n] ").strip().lower()
         if confirm == "y":
-            query = "INSERT INTO workouts (workoutName, caloriesBurned, wourkoutDate) VALUES (%s, %s, %s)"
-            cursor.execute(query, (name, calories, date))
+            query = "INSERT INTO workouts (workoutName, durationInMinutes, caloriesBurned, wourkoutDate, userId) VALUES (%s, %s, %s, %s, %s);"
+            cursor.execute(query, (name, duration, calories, date, user_id))
             mydb.commit()
             mydb.close()
             print("Successfully created the workout")
@@ -455,7 +472,7 @@ def create_workouts():
             print("Operation aborted.")
             return
 
-def modify_workouts():
+def modify_workouts(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -506,8 +523,8 @@ def modify_workouts():
 
     if confirm == "y":
         try:
-            query = "UPDATE workouts SET workoutName = %s, duration = %s, caloriesBurned = %s, workoutDate = %s WHERE id = %s"
-            cursor.execute(query, (new_name, new_duration, new_calories, new_date, workout_id))
+            query = "UPDATE workouts SET workoutName = %s, duration = %s, caloriesBurned = %s, workoutDate = %s WHERE workoutId = %s and userId = %s;"
+            cursor.execute(query, (new_name, new_duration, new_calories, new_date, workout_id, user_id))
             mydb.commit()
             print("Successfully updated the workout.")
         except Error as e:
@@ -518,7 +535,7 @@ def modify_workouts():
         mydb.close()
         print("Operation aborted.")
 
-def display_workout_by_id():
+def display_workout_by_id(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -536,8 +553,8 @@ def display_workout_by_id():
             print(f"Invalid input: {ve}. Please try again.")
 
     try:
-        query = "SELECT * FROM workouts WHERE workoutId = %s"
-        cursor.execute(query, (workout_id,))
+        query = "SELECT * FROM workouts WHERE workoutId = %s AND userId = %s;"
+        cursor.execute(query, (workout_id,user_id))
         workout = cursor.fetchone()
 
         if workout:
@@ -553,7 +570,7 @@ def display_workout_by_id():
     finally:
         mydb.close()
 
-def display_workout_by_name():
+def display_workout_by_name(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -564,7 +581,7 @@ def display_workout_by_name():
     workout_name = input("Enter the workout name: ").strip()
 
     try:
-        query = "SELECT * FROM workouts WHERE workoutName = %s"
+        query = "SELECT * FROM workouts WHERE workoutName = %s and userId = %s;"
         cursor.execute(query, (workout_name,))
         workouts = cursor.fetchall()
 
@@ -582,7 +599,7 @@ def display_workout_by_name():
     finally:
         mydb.close()
 
-def display_workout_by_date():
+def display_workout_by_date(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -599,8 +616,8 @@ def display_workout_by_date():
         print("Invalid date format. Please enter it in the format DD-MM-YYYY or DD/MM/YYYY.")
 
     try:
-        query = "SELECT * FROM workouts WHERE workoutDate >= %s ORDER BY workoutDate ASC"
-        cursor.execute(query, (date,))
+        query = "SELECT * FROM workouts WHERE workoutDate >= %s and userId = %s ORDER BY workoutDate ASC"
+        cursor.execute(query, (date,user_id))
         workouts = cursor.fetchall()
 
         if workouts:
@@ -617,7 +634,7 @@ def display_workout_by_date():
     finally:
         mydb.close()
 
-def display_workout_by_calories():
+def display_workout_by_calories(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -635,8 +652,8 @@ def display_workout_by_calories():
             print(f"Invalid input: {ve}. Please try again.")
 
     try:
-        query = "SELECT * FROM workouts WHERE caloriesBurned >= %s ORDER BY caloriesBurned ASC"
-        cursor.execute(query, (min_calories,))
+        query = "SELECT * FROM workouts WHERE caloriesBurned >= %s and userId = %s ORDER BY caloriesBurned ASC"
+        cursor.execute(query, (min_calories,user_id))
         workouts = cursor.fetchall()
 
         if workouts:
@@ -653,14 +670,14 @@ def display_workout_by_calories():
     finally:
         mydb.close()
 
-def display_all_workouts():
+def display_all_workouts(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
         return
     cursor = mydb.cursor()
-    query = "SELECT * FROM workouts ORDER BY workoutDate ASC"
-    cursor.execute(query)
+    query = "SELECT * FROM workout where userId = %s ORDER BY workoutDate ASC"
+    cursor.execute(query, (user_id,))
     workouts = cursor.fetchall()
     if workouts:
         print(f"\nAll workouts:")
@@ -671,7 +688,7 @@ def display_all_workouts():
         print(f"No workouts found.")
     mydb.close()
 
-def display_workouts():
+def display_workouts(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -682,19 +699,33 @@ def display_workouts():
         print("Invalid input. Please try again.")
         choice = int(input("Enter the choice number: "))
     if choice == 1:
-        display_workout_by_id()
+        display_workout_by_id(user_id)
     if choice == 2:
-        display_workout_by_name()
+        display_workout_by_name(user_id)
     elif choice == 3:
-        display_workout_by_date()
+        display_workout_by_date(user_id)
     elif choice == 4:
-        display_workout_by_calories()
+        display_workout_by_calories(user_id)
     elif choice == 5:
-        display_all_workouts()
+        display_all_workouts(user_id)
 
+def manage_workouts(user_id):
+    print("\nWorkout Management")
+    print("1. Create Workout")
+    print("2. Modify Workout")
+    print("3. Display Workouts")
+    choice = int(input("Enter your choice: "))
+    if choice == 1:
+        create_workouts(user_id)
+    elif choice == 2:
+        modify_workouts(user_id)
+    elif choice == 3:
+        display_workouts(user_id)
+    else:
+        print("Invalid choice.")
 
 #Sleep
-def create_sleep():
+def create_sleep(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -702,7 +733,7 @@ def create_sleep():
     cursor = mydb.cursor()
     while True:
         date_input = input("Enter the date of the sleep: ").strip()
-        if validate_date(date):
+        if validate_date(date_input):
             date = convert_date(date_input)
             if date:
                 break
@@ -721,8 +752,8 @@ def create_sleep():
     while confirm != "y" and confirm != "n":
         confirm = input("Do you want to continue? [y/n] ").strip().lower()
         if confirm == "y":
-            query = "INSERT INTO sleeps (durationInHours, sleepQuality, date) VALUES (%s, %s, %s)"
-            cursor.execute(query, (duration, sleepQuality, date))
+            query = "INSERT INTO sleeps (durationInHours, sleepQuality, date, userId) VALUES (%s, %s, %s, %s)"
+            cursor.execute(query, (duration, sleepQuality, date, user_id))
             mydb.commit()
             mydb.close()
             print("Successfully created the sleep")
@@ -732,7 +763,7 @@ def create_sleep():
             print("Operation aborted.")
             return
 
-def modify_sleep():
+def modify_sleep(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -779,8 +810,8 @@ def modify_sleep():
 
     if confirm == "y":
         try:
-            query = "UPDATE sleep SET duration = %s, quality = %s, date = %s WHERE date = %s"
-            cursor.execute(query, (duration, sleep_quality, new_date, current_date))
+            query = "UPDATE sleep SET duration = %s, quality = %s, date = %s WHERE date = %s and userId = %s;"
+            cursor.execute(query, (duration, sleep_quality, new_date, current_date, user_id))
             mydb.commit()
             print("Successfully updated the sleep record.")
         except Error as e:
@@ -791,7 +822,7 @@ def modify_sleep():
         mydb.close()
         print("Operation aborted.")
 
-def display_sleep_by_id():
+def display_sleep_by_id(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -809,8 +840,8 @@ def display_sleep_by_id():
             print(f"Invalid input: {ve}. Please try again.")
 
     try:
-        query = "SELECT * FROM sleep WHERE sleepId = %s"
-        cursor.execute(query, (sleep_id,))
+        query = "SELECT * FROM sleep WHERE sleepId = %s and userId = %s;"
+        cursor.execute(query, (sleep_id,user_id))
         sleep_entry = cursor.fetchone()
 
         if sleep_entry:
@@ -825,7 +856,7 @@ def display_sleep_by_id():
     finally:
         mydb.close()
 
-def display_sleep_by_date():
+def display_sleep_by_date(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -842,8 +873,8 @@ def display_sleep_by_date():
         print("Invalid date format. Please enter it in the format DD-MM-YYYY or DD/MM/YYYY.")
 
     try:
-        query = "SELECT * FROM sleep WHERE sleepDate = %s ORDER BY sleepDate ASC"
-        cursor.execute(query, (date,))
+        query = "SELECT * FROM sleep WHERE sleepDate = %s and userId = %s ORDER BY sleepDate ASC"
+        cursor.execute(query, (date, user_id))
         sleep_entries = cursor.fetchall()
 
         if sleep_entries:
@@ -859,7 +890,7 @@ def display_sleep_by_date():
     finally:
         mydb.close()
 
-def display_sleep_by_duration():
+def display_sleep_by_duration(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -877,8 +908,8 @@ def display_sleep_by_duration():
             print(f"Invalid input: {ve}. Please try again.")
 
     try:
-        query = "SELECT * FROM sleep WHERE duration >= %s ORDER BY duration ASC"
-        cursor.execute(query, (min_duration,))
+        query = "SELECT * FROM sleep WHERE duration >= %s and userId = %s ORDER BY duration ASC"
+        cursor.execute(query, (min_duration,user_id))
         sleep_entries = cursor.fetchall()
 
         if sleep_entries:
@@ -894,7 +925,7 @@ def display_sleep_by_duration():
     finally:
         mydb.close()
 
-def display_sleep_by_quality():
+def display_sleep_by_quality(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -905,8 +936,8 @@ def display_sleep_by_quality():
     sleep_quality = input("Enter the sleep quality to filter by (e.g., 'Good', 'Average', 'Poor'): ").strip()
 
     try:
-        query = "SELECT * FROM sleep WHERE quality = %s ORDER BY sleepDate ASC"
-        cursor.execute(query, (sleep_quality,))
+        query = "SELECT * FROM sleep WHERE quality = %s and userId = %s ORDER BY sleepDate ASC"
+        cursor.execute(query, (sleep_quality,user_id))
         sleep_entries = cursor.fetchall()
 
         if sleep_entries:
@@ -922,14 +953,14 @@ def display_sleep_by_quality():
     finally:
         mydb.close()
 
-def display_all_sleeps():
+def display_all_sleeps(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
         return
     cursor = mydb.cursor()
-    query = "SELECT * FROM sleep ORDER BY sleepDate ASC"
-    cursor.execute(query)
+    query = "SELECT * FROM sleep where userid = %s ORDER BY sleepDate ASC"
+    cursor.execute(query,(user_id,))
     sleep_entries = cursor.fetchall()
     if sleep_entries:
         print(f"\nAll sleep entries:")
@@ -939,7 +970,7 @@ def display_all_sleeps():
         print(f"No sleep entries found.")
     mydb.close()
 
-def display_sleep():
+def display_sleep(user_id):
     mydb = connect_to_db()
     if not mydb:
         print("Database connection failed. Operation aborted.")
@@ -956,18 +987,30 @@ def display_sleep():
         print("Invalid input. Please try again.")
         choice = int(input("Enter the choice number: "))
     if choice == 1:
-        display_sleep_by_id()
+        display_sleep_by_id(user_id)
     elif choice == 2:
-        display_sleep_by_date()
+        display_sleep_by_date(user_id)
     elif choice == 3:
-        display_sleep_by_duration()
+        display_sleep_by_duration(user_id)
     elif choice == 4:
-        display_sleep_by_quality()
+        display_sleep_by_quality(user_id)
     elif choice == 5:
-        display_all_sleeps()
+        display_all_sleeps(user_id)
 
-
-
+def manage_sleep(user_id):
+    print("\nSleep Management")
+    print("1. Create Sleep Record")
+    print("2. Modify Sleep Record")
+    print("3. Display Sleep Records")
+    choice = int(input("Enter your choice: "))
+    if choice == 1:
+        create_sleep(user_id)
+    elif choice == 2:
+        modify_sleep(user_id)
+    elif choice == 3:
+        display_sleep(user_id)
+    else:
+        print("Invalid choice.")
 
 
 
