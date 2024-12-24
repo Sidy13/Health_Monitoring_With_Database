@@ -36,6 +36,12 @@ def convert_date(date):
     except ValueError:
         return None
 
+def reverse_convert_date(date):
+    try:
+        date = date.replace("/", "-")
+        return datetime.strptime(date, "%Y-%m-%d").strftime("%d-%m-%Y")
+    except ValueError:
+        return None
 #User
 def create_user():
     mydb = connect_to_db()
@@ -428,6 +434,7 @@ def delete_meal(user_id):
             return
         mealName = meal[1]
         mealDate = meal[3]
+        mealDate = reverse_convert_date(mealDate)
         while True:
             confirm = input(f"\nDo you want to delete the {mealName} from the {mealDate} ? (y/n): ").lower().strip()
             if confirm in ["y", "n"]:
@@ -765,6 +772,7 @@ def delete_workout(user_id):
             return
         workoutName = workouts[1]
         workoutDate = workouts[4]
+        workoutDate = reverse_convert_date(workoutDate)
         while True:
             confirm = input(f"\nDo you want to delete the {workoutName} from the {workoutDate} ? (y/n):").lower().strip()
             if confirm in ["y", "n"]:
@@ -1094,6 +1102,7 @@ def delete_sleep(user_id):
             return
 
         sleepDate = sleep[3]
+        sleepDate = reverse_convert_date(sleepDate)
         while True:
             confirm = input(f"Are you sure you want to delete the sleep {sleepId} from the {sleepDate} ? (y/n): ").lower().strip()
             if confirm in ["y", "n"]:
