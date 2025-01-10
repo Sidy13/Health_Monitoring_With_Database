@@ -53,6 +53,9 @@ def create_user():
     firstName = input("Enter your first name: ")
     lastName = input("Enter your last name: ")
     email = input("Enter your email: ")
+    height = int(input("Enter your height: "))
+    weight = int(input("Enter your weight: "))
+    BMI = weight / (height ** 2)
     password = input("Enter your password: ")
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
@@ -61,10 +64,12 @@ def create_user():
     print("first name: ", firstName)
     print("last name: ", lastName)
     print("email: ", email)
+    print("height: ", height)
+    print("weight: ", weight)
     confirm = input("Do you want to continue? [y/n] ").strip().lower()
     if confirm == "y":
-        query = "Insert into user (username, firstName, lastName, password, email) values (%s, %s, %s, %s, %s)"
-        cursor.execute(query, (username, firstName, lastName, hashed_password, email))
+        query = "Insert into user (username, firstName, lastName, password, email, height, weight) values (%s, %s, %s, %s, %s, %s, %s)"
+        cursor.execute(query, (username, firstName, lastName, hashed_password, email, height, weight))
         mydb.commit()
         mydb.close()
         print("User created successfully")
@@ -112,10 +117,17 @@ def modify_user():
         firstName = input("Enter your first name: ")
         lastName = input("Enter your last name: ")
         email = input("Enter your email: ")
+        height = int(input("Enter your height: "))
+        weight = int(input("Enter your weight: "))
+        BMI = weight / (height ** 2)
         password = input("Enter your password: ")
+
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        query = "UPDATE user SET username = %s, firstName = %s, lastName = %s, email = %s, password = %s WHERE userId = %s"
-        cursor.execute(query, (username, firstName, lastName, email, hashed_password, user_id, ))
+        query = "UPDATE user SET username = %s, firstName = %s, lastName = %s, email = %s, password = %s height = %s, weight = %s, bmi = %s WHERE userId = %s"
+        query2 = "UPDATE user SET height = %s, weight = %s, bmi = %s WHERE userId = %s"
+        cursor.execute(query, (username, firstName, lastName, email, hashed_password, user_id ))
+        cursor.execute(query2, (height, weight, BMI, user_id, ))
+        print("User updated successfully")
         mydb.commit()
         mydb.close()
 
@@ -142,6 +154,56 @@ def delete_user():
             mydb.close()
             print("Operation aborted")
             return
+
+def explain_BMI(BMI):
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
+    if BMI<0:
+        print("BMI cannot be negative")
+        return
+    elif BMI < 18.5:
+        print("Your BMI is equal to ", BMI," which classify you as an underweight")
+    elif 18.5 <= BMI < 25:
+        print("Your BMI is equal to ", BMI," which classify you as a normal")
+    elif 25 <= BMI < 30:
+        print("Your BMI is equal to ", BMI," which classify you as a overweight")
+    elif 30 <= BMI < 35:
+        print("Your BMI is equal to ", BMI," which classify you as a first class obese")
+    elif 35 <= BMI < 40:
+        print("Your BMI is equal to ", BMI," which classify you as a second class obese")
+    elif BMI >= 40:
+        print("Your BMI is equal to ", BMI," which classify you as a third class obese")
+
+
+def display_user(user_id):
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
+    try:
+        query = "SELECT * FROM user WHERE userId = %s"
+        cursor.execute(query, (user_id, ))
+        user = cursor.fetchone()
+        if user:
+            print("\n User information :")
+            print("username: ", user[1])
+            print("first name: ", user[2])
+            print("last name: ", user[3])
+            print("email: ", user[5])
+            print("height: ", user[7])
+            print("weight: ", user[6])
+            bmi = user[8]
+            print("bmi: ", explain_BMI(bmi))
+    except Error as e:
+        print(e)
+        return
+
+
+
 
 
 #Meal
