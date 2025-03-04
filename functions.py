@@ -1272,28 +1272,42 @@ def update_user_info(user_id):
 #Weight prediction
 
 def weight_prediction(user_id):
-    mydb = connect_to_db()
-    if not mydb:
-        print("Database connection failed. Operation aborted.")
-        return
-    cursor = mydb.cursor()
-    query = "Select weight from user where userid = %s and weight is not null;"
-    cursor.execute(query, (user_id,))
-    weight = cursor.fetchall()
-    df = pd.DataFrame(weight, columns=["weight"])
-    df["weeks"] = np.arange(1, len(df) + 1).reshape(-1, 1)
+    try:
+        mydb = connect_to_db()
+        if not mydb:
+            print("Database connection failed. Operation aborted.")
+            return
 
-    #Training
-    model = LinearRegression()
-    model.fit(df["weeks"], df["weight"])
+        cursor = mydb.cursor()
+        query = "SELECT weight FROM user WHERE userid = %s AND weight IS NOT NULL;"
+        cursor.execute(query, (user_id,))
+        weight = [w[0] for w in cursor.fetchall()]
+        mydb.close()
 
-    #Predictions for the next 10 weeks
-    ten_next_weeks = np.arange(len(df) + 1, len(df) + 11).reshape(-1, 1)
-    prediction = model.predict(ten_next_weeks)
+        if not weight:
+            print("No weight data available for this user.")
+            return
 
-    prediction_df = pd.DataFrame({"Weeks": range(len(df) + 1, len(df) + 11), "Predicted weight (in kg)": prediction})
-    print(prediction_df)
-    mydb.close()
+        df = pd.DataFrame(weight, columns=["weight"])
+        df["weeks"] = np.arange(1, len(df) + 1)
+
+        # Training
+        model = LinearRegression()
+        model.fit(df["weeks"].values.reshape(-1,1), df["weight"].values)
+
+        # Predictions for the next 10 weeks
+        ten_next_weeks = np.arange(len(df) + 1, len(df) + 11).reshape(-1, 1)
+        prediction = model.predict(ten_next_weeks)
+
+        prediction_df = pd.DataFrame({
+            "Weeks": range(len(df) + 1, len(df) + 11),
+            "Predicted weight (in kg)": prediction
+        })
+
+        print(prediction_df)
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 
