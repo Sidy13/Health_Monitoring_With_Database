@@ -1218,6 +1218,55 @@ def plot_sleeps(user_id):
 
 
 
+def update_user_info(user_id):
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
+
+    print("\nUpdate User Information")
+    new_first_name = input("New first name (leave empty to keep current): ")
+    new_last_name = input("New last name (leave empty to keep current): ")
+    new_email = input("New email (leave empty to keep current): ")
+    new_weight = input("New weight in kg (leave empty to keep current): ")
+    new_height = input("New height in cm (leave empty to keep current): ")
+
+    updates = {}
+    if new_first_name:
+        updates["firstName"] = new_first_name
+    if new_last_name:
+        updates["lastName"] = new_last_name
+    if new_email:
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", new_email):
+            print("Error: Invalid email format.")
+        else:
+            updates["email"] = new_email
+    if new_weight:
+        try:
+            updates["weight"] = float(new_weight)
+        except ValueError:
+            print("Error: Invalid weight. Must be a number.")
+
+    if new_height:
+        try:
+            updates["height"] = float(new_height) / 100  # Convert cm to meters
+        except ValueError:
+            print("Error: Invalid height. Must be a number.")
+    if updates:
+        update_query = "UPDATE user SET " + ", ".join(f"{key} = %s" for key in updates.keys()) + " WHERE userId = %s"
+        values = list(updates.values()) + [user_id]
+
+        try:
+            cursor.execute(update_query, values)
+            cursor.commit()
+            print("Update successful!")
+        except mysql.connector.Error as e:
+            print(f"MySQL Error: {e}")
+    else:
+        print("No changes were made.")
+
+    cursor.close()
 
 
 #Weight prediction
