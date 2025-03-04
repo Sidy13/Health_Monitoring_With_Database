@@ -5,9 +5,9 @@ from functions import *
 def main():
     print(
         "Welcome in the health monitoring system ! \nDo you have an account or would you like to create a new account?")
-    choice = int(input("1. Create an account\n2. Create a new account\nEnter your choice: "))
+    choice = int(input("1. Login\n2. Create a new account\nEnter your choice: "))
     while choice not in [1, 2]:
-        choice = int(input("1. Create an account\n2. Create a new account\n"))
+        choice = int(input("1. Login\n2. Create a new account\n"))
     if choice == 1:
         is_logged_in, user_id = login()
     if choice == 2:
@@ -18,7 +18,8 @@ def main():
         print("2. Manage Workouts")
         print("3. Manage Sleep")
         print("4. Manage Users")
-        print("5. Exit")
+        print("5. See the predicted weight for the next 10 weeks")
+        print("6. Exit")
 
         choice = int(input("Enter your choice: "))
         while choice not in [1, 2, 3, 4, 5]:
@@ -29,7 +30,11 @@ def main():
             manage_workouts(user_id)
         elif choice == 3:
             manage_sleep(user_id)
+        elif choice == 4:
+            update_user_info(user_id)
         elif choice == 5:
+            weight_prediction(user_id)
+        elif choice == 6:
             print("Exiting the program. Goodbye!")
             break
         else:
