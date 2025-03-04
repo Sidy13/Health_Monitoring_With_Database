@@ -1217,7 +1217,6 @@ def plot_sleeps(user_id):
 
 
 
-
 #Weight prediction
 
 def weight_prediction(user_id):
