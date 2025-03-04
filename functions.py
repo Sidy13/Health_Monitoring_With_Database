@@ -5,6 +5,7 @@ import bcrypt
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
+import re
 
 #Helper
 def connect_to_db():
@@ -1217,6 +1218,8 @@ def plot_sleeps(user_id):
 
 
 
+
+
 #Weight prediction
 
 def weight_prediction(user_id):
@@ -1229,7 +1232,7 @@ def weight_prediction(user_id):
     cursor.execute(query, (user_id,))
     weight = cursor.fetchall()
     df = pd.DataFrame(weight, columns=["weight"])
-    df["weeks"] = np.arrange(1, len(df) + 1).reshape(-1, 1)
+    df["weeks"] = np.arange(1, len(df) + 1).reshape(-1, 1)
 
     #Training
     model = LinearRegression()
