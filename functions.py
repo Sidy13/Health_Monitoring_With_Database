@@ -2,6 +2,9 @@ import mysql.connector
 from mysql.connector import Error
 from datetime import datetime
 import bcrypt
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
 
 #Helper
 def connect_to_db():
@@ -53,9 +56,10 @@ def create_user():
     firstName = input("Enter your first name: ")
     lastName = input("Enter your last name: ")
     email = input("Enter your email: ")
-    height = int(input("Enter your height: "))
+    height = int(input("Enter your height in cm: "))
+    height_in_meters = height / 100
     weight = int(input("Enter your weight: "))
-    BMI = weight / (height ** 2)
+    BMI = weight / (height_in_meters ** 2)
     password = input("Enter your password: ")
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
@@ -68,8 +72,8 @@ def create_user():
     print("weight: ", weight)
     confirm = input("Do you want to continue? [y/n] ").strip().lower()
     if confirm == "y":
-        query = "Insert into user (username, firstName, lastName, password, email, height, weight) values (%s, %s, %s, %s, %s, %s, %s)"
-        cursor.execute(query, (username, firstName, lastName, hashed_password, email, height, weight))
+        query = "Insert into user (username, firstName, lastName, password, email, height, weight, bmi) values (%s, %s, %s, %s, %s, %s, %s, %s)"
+        cursor.execute(query, (username, firstName, lastName, hashed_password, email, height, weight, BMI))
         mydb.commit()
         mydb.close()
         print("User created successfully")
@@ -1203,7 +1207,43 @@ def manage_sleep(user_id):
     else:
         print("Invalid choice.")
 
+def plot_sleeps(user_id):
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
 
+
+
+
+
+
+#Weight prediction
+
+def weight_prediction(user_id):
+    mydb = connect_to_db()
+    if not mydb:
+        print("Database connection failed. Operation aborted.")
+        return
+    cursor = mydb.cursor()
+    query = "Select weight from user where userid = %s and weight is not null;"
+    cursor.execute(query, (user_id,))
+    weight = cursor.fetchall()
+    df = pd.DataFrame(weight, columns=["weight"])
+    df["weeks"] = np.arrange(1, len(df) + 1).reshape(-1, 1)
+
+    #Training
+    model = LinearRegression()
+    model.fit(df["weeks"], df["weight"])
+
+    #Predictions for the next 10 weeks
+    ten_next_weeks = np.arange(len(df) + 1, len(df) + 11).reshape(-1, 1)
+    prediction = model.predict(ten_next_weeks)
+
+    prediction_df = pd.DataFrame({"Weeks": range(len(df) + 1, len(df) + 11), "Predicted weight (in kg)": prediction})
+    print(prediction_df)
+    mydb.close()
 
 
 
